@@ -5,7 +5,7 @@ static void send_bit(pid_t pid, int byte)
 	kill(pid, byte);
 }
 
-static void byte_sender(pid_t pid, signed short byte_len, signed short msg)
+static void bit_sender(pid_t pid, signed short byte_len, signed short msg)
 {
 	int bit_index;
 
@@ -24,32 +24,32 @@ static void byte_sender(pid_t pid, signed short byte_len, signed short msg)
 static char* get_chunk_len(char *msg)
 {
 	int	max_len;
-	int	chunk_len;
+	int	payload_len;
 
 	max_len = MSG_BIT_LEN;
-	chunk_len = 0;
+	payload_len = 0;
 	while (max_len-- && msg++)
-		chunk_len++;
-	return (chunk_len);
+		payload_len++;
+	return (payload_len);
 }
 
-static void send_meta_info(pid_t pid, signed short chunk_len)
+static void send_meta_info(pid_t pid, signed short payload_len)
 {
-	byte_sender(pid, MSG_META_BIT_LEN, chunk_len);
+	bit_sender(pid, MSG_META_BIT_LEN, payload_len);
 }
 
 static void send_char(pid_t pid, char c)
 {
-	byte_sender(pid, CHAR_BIT_LEN, c);
+	bit_sender(pid, CHAR_BIT_LEN, c);
 }
 
-static void send_chunk(pid_t pid, char *msg_offset, int chunk_len)
+static void send_payload(pid_t pid, char *msg_offset, int payload_len)
 {
-	while (chunk_len)
+	while (payload_len)
 	{
 		send_char(pid, msg_offset);
 		msg_offset++;
-		chunk_len--;
+		payload_len--;
 	}
 }
 
@@ -61,20 +61,20 @@ static void send_padding(pid_t pid, int padding_len)
 
 static void send_message(char *msg, pid_t pid)
 {
-	int	chunk_len;
+	int	payload_len;
 	int	padding_len;
 
-	chunk_len = 0;
+	payload_len = 0;
 	padding_len = 0;
 	while (*msg)
 	{
 		//TODO: обработчк пустого сообщения
-		chunk_len = get_chunk_len(msg);
-		padding_len = MSG_BIT_LEN - (chunk_len * CHAR_BIT_LEN);
-		send_meta_info(pid, chunk_len);
-		send_chunk(pid, msg, chunk_len);
+		payload_len = get_chunk_len(msg);
+		padding_len = MSG_BIT_LEN - (payload_len * CHAR_BIT_LEN);
+		send_meta_info(pid, payload_len);
+		send_payload(pid, msg, payload_len);
 		send_padding(pid, padding_len);
-		msg += chunk_len;
+		msg += payload_len;
 	}
 }
 
