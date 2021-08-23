@@ -7,17 +7,17 @@ static void send_bit(pid_t pid, int byte)
 
 static void byte_sender(pid_t pid, signed short byte_len, signed short msg)
 {
-	int byte_index;
+	int bit_index;
 
-	int byte_index = 1;
+	int bit_index = 1;
 	while (byte_len > 0)
 	{
-		if (msg & byte_index == 1)
+		if (msg & bit_index == 1)
 			send_bit(pid, ONE_BIT);
 		else
 			send_bit(pid, ZERO_BIT);
 		byte_len--;
-		byte_index <<= 1;
+		bit_index <<= 1;
 	}
 }
 
