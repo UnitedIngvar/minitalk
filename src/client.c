@@ -74,7 +74,7 @@ static void send_message(char *msg, pid_t pid)
 		send_meta_info(pid, payload_len);
 		send_payload(pid, msg, payload_len);
 		send_padding(pid, padding_len);
-		msg += payload_len;
+		msg += payload_len / CHAR_BIT_LEN;
 	}
 }
 
