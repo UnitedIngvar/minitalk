@@ -1,22 +1,22 @@
 #include "../includes/minitalk.h"
 
-static void send_bit(pid_t pid, int byte)
+static void send_bit(pid_t pid, int bit)
 {
-	kill(pid, byte);
+	kill(pid, bit);
 }
 
-static void bit_sender(pid_t pid, signed short byte_len, signed short msg)
+static void bit_sender(pid_t pid, signed short bit_len, signed short msg)
 {
 	int bit_index;
 
 	int bit_index = 1;
-	while (byte_len > 0)
+	while (bit_len > 0)
 	{
 		if (msg & bit_index == 1)
 			send_bit(pid, ONE_BIT);
 		else
 			send_bit(pid, ZERO_BIT);
-		byte_len--;
+		bit_len--;
 		bit_index <<= 1;
 	}
 }
