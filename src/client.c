@@ -21,16 +21,16 @@ static void bit_sender(pid_t pid, signed short bit_len, signed short msg)
 	}
 }
 
-static char* get_chunk_len(char *msg)
+static char* get_chunk_bit_len(char *msg)
 {
 	int	max_len;
-	int	payload_len;
+	int	payload_char_len;
 
-	max_len = MSG_BIT_LEN;
-	payload_len = 0;
+	max_len = MSG_BIT_LEN / CHAR_BIT_LEN;
+	payload_char_len = 0;
 	while (max_len-- && msg++)
-		payload_len++;
-	return (payload_len);
+		payload_char_len++;
+	return (payload_char_len * CHAR_BIT_LEN);
 }
 
 static void send_meta_info(pid_t pid, signed short payload_len)
@@ -69,8 +69,8 @@ static void send_message(char *msg, pid_t pid)
 	while (*msg)
 	{
 		//TODO: обработчк пустого сообщения
-		payload_len = get_chunk_len(msg);
-		padding_len = MSG_BIT_LEN - (payload_len * CHAR_BIT_LEN);
+		payload_len = get_chunk_bit_len(msg);
+		padding_len = MSG_BIT_LEN - (payload_len);
 		send_meta_info(pid, payload_len);
 		send_payload(pid, msg, payload_len);
 		send_padding(pid, padding_len);

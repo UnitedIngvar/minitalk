@@ -8,7 +8,25 @@ static void insert_bit(int bit_index, int *element, int signum)
 	return (1);
 }
 
-static void insert_char(char **chunk, int signum)
+static void insert_padding(int signum, char **chunk)
+{
+	static int bit_index;
+	static char c;
+
+	if (bit_index == 0)
+		bit_index = 1 << CHAR_BIT_LEN;
+	if (signum != ZERO_BIT)
+		//error
+	insert_bit(bit_index, &c, signum);
+	if (bit_index == 0)
+	{
+		**chunk = c;
+		*chunk++;
+		bit_index = 0;
+	}
+}
+
+static void insert_payload(int signum, char **chunk)
 {
 	static int bit_index;
 	static char c;
@@ -25,38 +43,54 @@ static void insert_char(char **chunk, int signum)
 }
 
 //TODO
-static void clear_all(char *chunk, int *meta_bit_len_index)
+static void clear_all(int *payload_len, int *padding_len, int *meta_len, int *bitc, char **chunk)
 {
 
 }
 
 static void chunk_handler(int signum, siginfo_t *siginfo, void *code)
 {
-	static int	chunk_len;
+	static int	payload_len;
+	static int	padding_len;
 	static int	meta_bit_len_index;
 	static int	bit_count;
 	static char *chunk;
 
+	//ввести флаг fished для функций
 	if (meta_bit_len_index == 0)
+	{
 		meta_bit_len_index = 1 << MSG_META_BIT_LEN;
+		payload_len = 0;
+	}
 	while (meta_bit_len_index != 0)
 	{
-		insert_bit(meta_bit_len_index, &chunk_len, signum);
+		insert_bit(meta_bit_len_index, &payload_len, signum);
 		meta_bit_len_index >>= 1;
 		bit_count++;
+		return;
 	}
+	//validate bit_count is 16
+	meta_bit_len_index = -1;
 	if (!chunk)
-		chunk = ft_calloc(sizeof(char) * (chunk_len / CHAR_BIT_LEN + 1));
-	while (chunk_len--)
+		chunk = ft_calloc(sizeof(char) * (payload_len / CHAR_BIT_LEN + 1));
+	while (payload_len--)
 	{
-		insert_char(&chunk, signum);
+		insert_payload(signum, &chunk);
 		bit_count++;
+		return;
 	}
-	while (chunk_len--)
+	while (padding_len--)
 	{
-		insert_char(&chunk, ZERO_BIT);
+		insert_padding(signum, &chunk);
 		bit_count++;
+		return;
 	}
+	if (!payload_len && !padding_len && bit_count != MSG_BIT_LEN)
+	{
+		//error. poll again
+	}
+	else
+		clear_all()
 }
 
 static void print_pid()
